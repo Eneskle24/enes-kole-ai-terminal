@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Enes Köle | Harem Alış/Satış & AI Hesaplayıcı</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AI Terminal">
+    <meta name="theme-color" content="#0d0d0d">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8172/8172837.png">
+    <style>
+        /* TEMA DEĞİŞKENLERİ (Varsayılan: Koyu Tema) */
+        :root { 
+            --gold: #d4af37; --silver: #c0c0c0; --green: #4caf50; --blue: #2196f3; --red: #ff4d4d; 
+            --bg: #0d0d0d; --card: #1a1a1a; --text: #ffffff; --text-muted: #888888; 
+            --input-bg: #111111; --border: #222222; --border-focus: #444444;
+            --ai-gradient: linear-gradient(45deg, #d4af37, #f39c12); 
+            --ai-gradient-2: linear-gradient(45deg, #2196f3, #9c27b0); 
+            --ai-gradient-3: linear-gradient(45deg, #4caf50, #2e7d32); 
+            --ai-gradient-4: linear-gradient(45deg, #e53935, #8e24aa); 
+            --ai-gradient-5: linear-gradient(45deg, #607d8b, #c0c0c0); 
+            --ai-gradient-6: linear-gradient(45deg, #0d47a1, #1976d2);
+            --roast-gradient: linear-gradient(45deg, #ff416c, #ff4b2b);
+        }
+        
+        /* AÇIK TEMA DEĞİŞKENLERİ */
+        [data-theme="light"] {
+            --bg: #f4f6f8; --card: #ffffff; --text: #1a1a1a; --text-muted: #555555; 
+            --input-bg: #f9f9f9; --border: #e0e0e0; --border-focus: #cccccc;
+            --gold: #b8860b; 
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 15px; margin: 0; transition: background 0.3s, color 0.3s; }
+        .dashboard { width: 100%; max-width: 380px; }
+        
+        .header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; }
+        .signature { font-size: 0.75rem; color: var(--gold); text-transform: uppercase; letter-spacing: 2px; font-weight: bold; }
+        .theme-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        
+        .tabs { display: flex; background: var(--border); border-radius: 12px; padding: 4px; margin-bottom: 20px; gap: 4px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab-btn { flex: 0 0 auto; padding: 10px 14px; text-align: center; font-size: 0.80rem; font-weight: bold; color: var(--text-muted); background: transparent; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .tab-btn.active { background: var(--card); color: var(--gold); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--card); padding: 18px; border-radius: 15px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid var(--border); transition: all 0.3s ease; position: relative; }
+        .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .value { font-size: 1.6rem; font-weight: bold; margin: 4px 0; color: var(--gold); }
+        
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .input-box { background: var(--border); padding: 12px; border-radius: 12px; border: 1px solid var(--border-focus); }
+        input, select { width: 100%; background: var(--input-bg); border: 1px solid var(--border-focus); color: var(--text); padding: 8px; border-radius: 6px; box-sizing: border-box; font-size: 1rem; margin-top: 5px; outline: none; }
+        input:focus, select:focus { border-color: var(--gold); }
+        
+        .btn { background: var(--gold); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn:active { transform: scale(0.95); }
+        .btn-small { background: var(--border); border: none; color: var(--text); padding: 6px 14px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-small.red { background: rgba(255, 77, 77, 0.1); color: var(--red); border: 1px solid var(--red); }
+        .btn-small.blue { background: rgba(33, 150, 243, 0.1); color: var(--blue); border: 1px solid var(--blue); }
+
+        .progress-container { background: var(--border); height: 12px; border-radius: 6px; margin: 15px 0 5px 0; overflow: hidden; }
+        .progress-bar { background: linear-gradient(90deg, var(--gold), var(--green)); height: 100%; width: 0%; transition: width 0.8s ease; }
+        
+        .total-box { border-left: 4px solid var(--gold); }
+        .target-stats { font-size: 0.85rem; display: flex; justify-content: space-between; color: var(--text-muted); margin-top: 5px; }
+        
+        .flash-gold { animation: flashGold 0.5s ease-out; }
+        @keyframes flashGold { 0% { background: #d4af3755; } 100% { background: var(--card); } }
+
+        .status-dot { height: 8px; width: 8px; background-color: var(--green); border-radius: 50%; display: inline-block; margin-right: 5px; animation: pulse 1s infinite; }
+        .status-dot.ai-dot { background-color: #f39c12; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        .info-text { font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-top: 15px; line-height: 1.4; }
+        .error-msg { color: var(--red); font-weight: bold; font-size: 0.75rem; margin-top: 5px; display: none; }
+        
+        .price-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 5px; color: var(--text-muted); }
+        .buy-val { color: var(--gold); font-weight: bold; }
+        
+        .calc-result-box { text-align: center; padding: 20px 0; }
+        .calc-result-box .value { font-size: 2.2rem; }
+
+        .ai-box { text-align: left; font-size: 0.85rem; color: var(--text); margin-top: 15px; display: none; padding: 15px; background: var(--input-bg); border-radius: 10px; border: 1px solid var(--border-focus); line-height: 1.5; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
+        .ai-box strong { color: var(--gold); }
+
+        .opportunity-alert { display: none; background: rgba(76, 175, 80, 0.15); border: 1px solid var(--green); color: var(--text); padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 0.85rem; line-height: 1.4; animation: pulseBorder 2s infinite; }
+        .opportunity-alert strong { color: var(--green); }
+        @keyframes pulseBorder { 0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); } 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); } }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="header-row">
+        <div class="signature">Enes Köle | AI Terminal</div>
+        <button class="theme-btn" onclick="toggleTheme()" id="themeToggleBtn">🌓 Tema</button>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-portfolio')">Canlı Altın</button>
+        <button class="tab-btn" onclick="switchTab('tab-history')">Portföyüm</button>
+        <button class="tab-btn" onclick="switchTab('tab-debt')">Borç & Döviz Takip</button>
+        <button class="tab-btn" onclick="switchTab('tab-calculator')">Senaryo</button>
+        <button class="tab-btn" onclick="switchTab('tab-inflation')">Reel Getiri</button>
+        <button class="tab-btn" onclick="switchTab('tab-fiat')">Harcama Avcısı</button>
+        <button class="tab-btn" onclick="switchTab('tab-crisis')">Kriz Testi</button>
+    </div>
+
+    <div id="tab-portfolio" class="tab-content active">
+        <div id="opportunityAlert" class="opportunity-alert"></div>
+
+        <div class="input-row">
+            <div class="input-box">
+                <div class="label">Gramım</div>
+                <input type="number" id="userGram" step="0.01" oninput="calculate()">
+            </div>
+            <div class="input-box">
+                <div class="label">Hedef (₺)</div>
+                <input type="number" id="targetAmount" oninput="calculate()">
+            </div>
+        </div>
+
+        <div class="card" id="marketCard">
+            <div class="label">Canlı Piyasa (Ons / Dolar)</div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="value" id="ons-price" style="font-size: 1.4rem;">$---</div>
+                <div id="usd-price" style="color: var(--green); font-weight: bold;">--- ₺</div>
+            </div>
+            <div id="apiError" class="error-msg">⚠️ Limit / Bağlantı Hatası</div>
+        </div>
+
+        <div class="card total-box" id="portfolioCard">
+            <div class="label">Portföy Değeri (Bozdurma)</div>
+            <div class="value" id="total-value" style="font-size: 2rem;">--- ₺</div>
+            <div id="gram-details" style="margin-top: 8px; border-top: 1px solid var(--border); padding-top: 5px;">
+                <div class="price-row"><span>Alış:</span><span id="buy-price" class="buy-val">--- ₺</span></div>
+                <div class="price-row"><span>Satış:</span><span id="sell-price">--- ₺</span></div>
+            </div>
+        </div>
+
+        <div class="card" style="border-color: #f39c12;">
+            <button class="btn" id="aiDailyBtn" onclick="generateDailyReport()" style="width: 100%; padding: 12px; background: var(--ai-gradient); color: #fff;">📜 "In Gold We Trust" Günlük Bültenimi Çıkar</button>
+            <div id="aiDailyResult" class="ai-box"></div>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+            <button class="btn" id="aiSentimentBtn" onclick="analyzeSentiment()" style="flex: 1 1 45%; padding: 10px; font-size: 0.75rem; background: var(--ai-gradient-4); color: white;">✨ Piyasa Durum Analizi</button>
+            <button class="btn" id="aiNewsBtn" onclick="analyzeNews()" style="flex: 1 1 45%; padding: 10px; font-size: 0.75rem; background: var(--ai-gradient-5); color: white;">📰 Canlı Gündem</button>
+            <button class="btn" id="aiHodlBtn" onclick="analyzeHodl()" style="flex: 1 1 100%; padding: 10px; font-size: 0.75rem; background: linear-gradient(45deg, #795548, #ff9800); color: white;">🧘‍♂️ Psikolojik Destek (HODL Koçu)</button>
+        </div>
+        <div id="aiQuickResult" class="ai-box" style="margin-top: 0; margin-bottom: 12px;"></div>
+
+        <div class="card">
+            <div class="label">Hedef İlerleme</div>
+            <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
+            <div class="target-stats">
+                <span id="progressPercent">%0</span><span id="remainingAmount">Kalan: --- ₺</span>
+            </div>
+        </div>
+
+        <div class="card" style="border-color: #4caf50;">
+            <button class="btn" id="aiGoalBtn" onclick="analyzeGoal()" style="width: 100%; padding: 12px; background: var(--ai-gradient-3); color: white;">✨ Usta Analistlerden Hedef Yorumu Al</button>
+            <div id="aiGoalResult" class="ai-box"></div>
+        </div>
+        
+        <div class="info-text">
+            <span class="status-dot"></span> Canlı Veri Akışı<br><span id="last-update">Veri bekleniyor...</span>
+        </div>
+    </div>
+
+    <div id="tab-history" class="tab-content">
+        <div class="card total-box">
+            <div class="label">Gelişmiş Portföy Özeti</div>
+            <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                <div><div class="label">Toplam Gram</div><div class="value" id="summaryGrams" style="font-size: 1.2rem;">0.00</div></div>
+                <div style="text-align: right;"><div class="label">Ortalama Maliyet</div><div class="value" id="summaryAvgCost" style="font-size: 1.2rem; color: var(--text);">0 ₺</div></div>
+            </div>
+            <div style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 10px;">
+                <div class="label">Anlık Net Kar / Zarar</div><div class="value" id="summaryProfit" style="font-size: 1.5rem;">0 ₺ (%0)</div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <button class="btn" id="aiAnalyzeBtn" onclick="analyzePortfolio()" style="flex: 1; padding: 12px; font-size: 0.8rem; background: var(--ai-gradient-6); color: white;">✨ Portföy Röntgeni</button>
+            <button class="btn" id="aiRoastBtn" onclick="roastPortfolio()" style="flex: 1; padding: 12px; font-size: 0.8rem; background: var(--roast-gradient); color: white;">🔥 Acımasız Eleştiri Modu</button>
+        </div>
+        <div id="aiAnalysisResult" class="ai-box"></div>
+
+        <div class="card" style="border-color: #9c27b0;">
+            <button class="btn" id="aiDCAPlanBtn" onclick="generateDCAPlan()" style="width: 100%; padding: 12px; background: var(--ai-gradient-2); color: white;">🗺️ Kademeli Alım Yol Haritası (Strateji Çıkar)</button>
+            <div id="aiDCAPlanResult" class="ai-box"></div>
+        </div>
+
+        <div class="card" style="border-color: #2196f3;">
+            <div class="label" style="margin-bottom: 10px;">Varlık Sepetim</div>
+            <div class="input-row" style="margin-bottom: 0;">
+                <div class="input-box" style="padding: 10px;">
+                    <div class="label">Varlık Türü</div>
+                    <select id="otherAssetType">
+                        <option value="Nakit">Nakit</option>
+                        <option value="Altın">Altın</option>
+                        <option value="Gümüş">Gümüş</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="CHF">CHF</option>
+                        <option value="BTC">BTC</option>
+                        <option value="Etherium">Etherium</option>
+                        <option value="BIST">BIST</option>
+                        <option value="SPX">SPX</option>
+                    </select>
+                </div>
+                <div class="input-box" style="padding: 10px;">
+                    <div class="label">Değeri (₺)</div>
+                    <input type="number" id="otherAssetAmount" step="100" placeholder="Örn: 50000">
+                </div>
+            </div>
+            
+            <button class="btn" onclick="addOtherAsset()" style="width: 100%; padding: 10px; margin-top: 10px; margin-bottom: 10px; background: var(--border); color: var(--text); border: 1px solid var(--border-focus);">➕ Sepete Ekle</button>
+            
+            <div id="otherAssetsContainer" style="margin-bottom: 10px; border-top: 1px solid var(--border); padding-top: 10px;"></div>
+
+            <button class="btn" id="aiDiversifyBtn" onclick="analyzeDiversification()" style="width: 100%; padding: 10px; background: var(--ai-gradient-6); color: white;">✨ Sepet Dağılımımı Yorumla</button>
+            <div id="aiDiversifyResult" class="ai-box"></div>
+        </div>
+
+        <div class="card">
+            <div class="label" id="historyFormLabel" style="margin-bottom: 10px;">Yeni Alım Ekle (Altın)</div>
+            <div class="input-row">
+                <div class="input-box" style="padding: 10px;"><div class="label">Alınan Gram Miktarı</div><input type="number" id="histGram" step="0.01" placeholder="Örn: 10.5"></div>
+                <div class="input-box" style="padding: 10px;"><div class="label">Alış Fiyatı (₺/gr)</div><input type="number" id="histPrice" step="0.01" placeholder="Örn: 3050.50"></div>
+            </div>
+            <div id="histError" class="error-msg" style="text-align: center; margin-bottom: 10px;"></div>
+            
+            <button class="btn" onclick="savePurchase()" id="savePurchaseBtn" style="width: 100%; padding: 10px; margin-bottom: 10px;">➕ Portföye Ekle</button>
+            <button class="btn" onclick="cancelEdit()" id="cancelEditBtn" style="display: none; width: 100%; padding: 10px; background: var(--border); color: var(--text); margin-bottom: 10px;">İptal</button>
+            
+            <div style="display: flex; gap: 8px;" id="aiTradingRow">
+                <button class="btn" onclick="askBuyAdvice()" id="aiBuyAdviceBtn" style="flex: 1; padding: 10px; font-size: 0.8rem; background: var(--border); color: var(--gold); border: 1px solid var(--gold);">✨ Şu An Alınır Mı?</button>
+                <button class="btn" onclick="askSellAdvice()" id="aiSellAdviceBtn" style="flex: 1; padding: 10px; font-size: 0.8rem; background: var(--border); color: var(--red); border: 1px solid var(--red);">✨ Satış Mahkemesi</button>
+            </div>
+            <div id="aiBuyAdviceResult" class="ai-box"></div>
+        </div>
+
+        <div class="label" style="margin: 15px 0 5px 0; display: flex; justify-content: space-between;">
+            <span>İşlem Geçmişi (Altın)</span><span id="historyCount" style="color: var(--text-muted); font-weight: bold;">0 Kayıt</span>
+        </div>
+        <div id="historyList"></div>
+
+        <div class="card" style="border-color: #9c27b0; margin-top: 15px;">
+            <div class="label" style="margin-bottom: 10px; color: #9c27b0;">Zaman Makinesi: Fırsat Maliyeti Yüzleşmesi</div>
+            <div class="info-text" style="text-align: left; margin-bottom: 15px; margin-top: 0;">Altın almak yerine TL'de tutsaydınız hedeflerinize ne olurdu?</div>
+            
+            <div style="background: var(--input-bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border); text-align: center; margin-bottom: 15px;">
+                <div class="label">Geçmişte Altına Bağlanan Toplam Para</div>
+                <div class="value" id="tmTotalCost" style="font-size: 1.8rem; color: var(--text-muted);">--- ₺</div>
+                <div style="font-size: 0.8rem; color: var(--green); margin-top: 5px;">(Bugünkü Değeri: <span id="tmCurrentValue" style="font-weight:bold;">--- ₺</span>)</div>
+            </div>
+
+            <button class="btn" id="aiTimeMachineBtn" onclick="analyzeTimeMachine()" style="width: 100%; padding: 12px; background: linear-gradient(45deg, #9c27b0, #673ab7); color: white;">⏳ Stöferle: TL'nin Erimiş Yüzünü Göster</button>
+            <div id="aiTimeMachineResult" class="ai-box"></div>
+        </div>
+    </div>
+
+    <div id="tab-debt" class="tab-content">
+        <div class="card total-box" style="border-color: #ff9800;">
+            <div class="label" style="margin-bottom: 10px; color: #ff9800;">Döviz Borcu Hedge Analisti</div>
+            <div class="info-text" style="text-align: left; margin-bottom: 15px; margin-top: 0;">Aralık ayına kadar kapatılması hedeflenen borçlarınızı yönetmek için altını ne zaman bozmalısınız?</div>
+            <div class="input-row" style="margin-bottom: 10px;">
+                <div class="input-box" style="padding: 10px;">
+                    <div class="label">Borç Tutarı</div>
+                    <input type="number" id="debtAmount" value="4190" oninput="calculateDebt()">
+                </div>
+                <div class="input-box" style="padding: 10px;">
+                    <div class="label">Para Birimi</div>
+                    <select id="debtCurrency" onchange="calculateDebt()">
+                        <option value="USD" selected>Dolar (USD)</option>
+                        <option value="EUR">Euro (EUR)</option>
+                        <option value="TRY">TL</option>
+                        <option value="Altın">Altın</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px;">
+                <div>
+                    <div class="label">Borcun TL Karşılığı</div>
+                    <div class="value" id="debtTLValue" style="font-size: 1.2rem; color: var(--red);">--- ₺</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="label">Bozulacak Altın Miktarı</div>
+                    <div class="value" id="debtGoldNeeded" style="font-size: 1.2rem; color: var(--text);">--- gr</div>
+                </div>
+            </div>
+            <button class="btn" id="aiDebtBtn" onclick="analyzeDebtHedge()" style="width: 100%; padding: 12px; margin-top: 15px; background: linear-gradient(45deg, #ff9800, #f44336); color: white;">⚖️ Borcumu Kapatayım mı? (Analiz Al)</button>
+            <div id="aiDebtResult" class="ai-box"></div>
+        </div>
+    </div>
+
+    <div id="tab-fiat" class="tab-content">
+        <div class="card" style="border-color: #e91e63;">
+            <div class="label" style="margin-bottom: 10px; color: #e91e63;">Aylık TL Harcaması Dedektifi</div>
+            <div class="info-text" style="text-align: left; margin-bottom: 15px; margin-top: 0;">Bu ay dışarıda kahveye, gereksiz aboneliklere veya lüks tüketime ne kadar harcadınız? Harcamalarınızı gram altın ile yüzleştirin.</div>
+            <div class="input-box" style="padding: 10px; margin-bottom: 15px;">
+                <div class="label">Gereksiz Harcama Tutarı (₺)</div>
+                <input type="number" id="wastedFiat" placeholder="Örn: 2500">
+            </div>
+            <button class="btn" id="aiFiatWasteBtn" onclick="analyzeFiatWaste()" style="width: 100%; padding: 12px; background: linear-gradient(45deg, #e91e63, #9c27b0); color: white;">🕵️‍♂️ Harcamamı Yüzüme Vur</button>
+            <div id="aiFiatWasteResult" class="ai-box"></div>
+        </div>
+    </div>
+
+    <div id="tab-crisis" class="tab-content">
+        <div class="card">
+            <div class="label" style="margin-bottom: 10px;">Makroekonomik Senaryo Seçin</div>
+            <select id="crisisScenario" style="margin-bottom: 15px; padding: 10px; background: var(--input-bg);">
+                <option value="FED Beklenmedik 50 Baz Puan Faiz İndirimi">FED Beklenmedik Faiz İndirimi</option>
+                <option value="Tayvan-Çin Jeopolitik Şoku">Tayvan-Çin Jeopolitik Şoku</option>
+                <option value="Küresel Hiperenflasyon ve TL Krizi">Küresel Hiperenflasyon ve TL Krizi</option>
+                <option value="Tarihi Borsa Çöküşü (2008 Benzeri Nakde Kaçış)">Tarihi Borsa Çöküşü (Nakde Kaçış)</option>
+                <option value="Merkez Bankalarının Devasa Altın Satışı">Merkez Bankalarının Toplu Altın Satışı</option>
+            </select>
+            <button class="btn" id="aiCrisisBtn" onclick="analyzeCrisis()" style="width: 100%; padding: 12px; background: var(--ai-gradient-4); color: white;">✨ Stres Testini Başlat</button>
+            <div id="aiCrisisResult" class="ai-box"></div>
+        </div>
+        <div class="info-text">Bu simülatör, portföyünüzün aşırı piyasa koşullarında nasıl tepki verebileceğini ustaların gözünden analiz eder.</div>
+    </div>
+
+    <div id="tab-inflation" class="tab-content">
+        <div class="card total-box" style="border-color: var(--blue);">
+            <div class="label">Gerçek Enflasyona Karşı Portföy</div>
+            <div class="input-box" style="margin-top: 10px; margin-bottom: 15px;">
+                <div class="label">Tahmini / Hissedilen Yıllık Enflasyon (%)</div>
+                <input type="number" id="inflationRate" value="65" oninput="calculateRealReturn()">
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px;">
+                <div><div class="label">Nominal Kar (TL)</div><div class="value" id="infNominal" style="font-size: 1.2rem;">0 ₺</div></div>
+                <div style="text-align: right;"><div class="label">Reel Alım Gücü Etkisi</div><div class="value" id="infReal" style="font-size: 1.2rem; color: var(--text);">0 ₺</div></div>
+            </div>
+        </div>
+        <div class="card" style="border-color: #2196f3;">
+            <button class="btn" id="aiInflationBtn" onclick="analyzeInflation()" style="width: 100%; padding: 12px; background: linear-gradient(45deg, #1976d2, #00bcd4); color: white;">✨ Stöferle: Gerçekleri Söyle</button>
+            <div id="aiInflationResult" class="ai-box"></div>
+        </div>
+    </div>
+
+    <div id="tab-calculator" class="tab-content">
+        <div class="card">
+            <div class="label" style="margin-bottom: 10px;">Senaryo Değerlerini Girin</div>
+            <div class="input-row">
+                <div class="input-box" style="padding: 10px;"><div class="label">Tahmini ONS ($)</div><input type="number" id="calcOns" step="0.01" oninput="calculateHypothetical()" placeholder="Örn: 2500"></div>
+                <div class="input-box" style="padding: 10px;"><div class="label">Tahmini Dolar (₺)</div><input type="number" id="calcUsd" step="0.01" oninput="calculateHypothetical()" placeholder="Örn: 35.50"></div>
+            </div>
+        </div>
+        <div class="card total-box">
+            <div class="label text-center">Tahmini Gram Altın Fiyatları</div>
+            <div class="calc-result-box">
+                <div class="label">Alış Fiyatı (Senin Bozacağın)</div><div class="value" id="calc-buy-price" style="color: var(--gold); margin-bottom: 15px;">--- ₺</div>
+                <div class="label">Satış Fiyatı (Piyasanın Sattığı)</div><div class="value" id="calc-sell-price" style="font-size: 1.4rem; color: var(--text);">--- ₺</div>
+            </div>
+        </div>
+        <div class="card" style="border-color: #9c27b0;">
+            <button class="btn" id="aiScenarioBtn" onclick="analyzeScenario()" style="width: 100%; padding: 12px; background: var(--ai-gradient-2); color: white;">✨ Makroekonomik Senaryoyu Yorumla</button>
+            <div id="aiScenarioResult" class="ai-box"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- TEMA (LIGHT/DARK) YÖNETİMİ ---
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    function toggleTheme() {
+        const root = document.documentElement;
+        const newTheme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    }
+
+    // --- GEMINI AI API CONFIGURATION ---
+    const apiKey = "AIzaSyBgUczF7IQyWqyByD944O05QD6NjYE8FBw"; 
+
+    const AI_SYSTEM_PROMPT = `Sen dünyaca ünlü iki altın analistinin mükemmel bir karışımısın: 
+    1) Gareth Soloway: Teknik analiz ustası, grafik döngülerini okur, aykırı (contrarian) yatırımcıdır. Piyasalar coşkuluyken uyarır, piyasalar düşerken "alım fırsatı (DCA)" der.
+    2) Ronald-Peter Stöferle: "In Gold We Trust" raporunun yazarı. Avusturya İktisat Okulu'na inanır. Fiat (kağıt) paranın kaçınılmaz değer kaybına, merkez bankalarının (FED) enflasyonist politikalarına ve altının en büyük sigorta olduğuna odaklanır.
+    Kullanıcılara bu iki kimliği harmanlayarak yanıt ver. Yanıtların çok kısa, çarpıcı ve kesinlikle 3-4 cümleyi geçmemeli (Günlük Bülten hariç). Cümlelerinde teknik terimler (destek, düzeltme, trimming) ve makro terimler (sistemik risk, fiat devalüasyonu, portföy sepeti) kullan. Her yanıtının sonuna mutlaka (YTD - Yatırım Tavsiyesi Değildir) notunu düş.`;
+
+    const TWELVE_DATA_KEY = '0e11316a48734c0b8102a28f2536e933';
+    const MULTIPLIERS = { USD: 1.00155, GOLD_BUY: 1.0213, GOLD_SELL: 1.03485 };
+
+    let currentOns = 0;
+    let currentUsd = 0;
+    let currentEur = 0; 
+    let avgPortfolioCost = 0; 
+    let globalTotalGrams = 0;
+    let globalTotalCost = 0;
+
+    let purchaseHistory = JSON.parse(localStorage.getItem('myPurchaseHistory')) || [];
+    let otherAssetsList = JSON.parse(localStorage.getItem('myOtherAssetsList')) || [];
+    let editIndex = -1;
+
+    document.getElementById('userGram').value = localStorage.getItem('myGrams') || "";
+    document.getElementById('targetAmount').value = localStorage.getItem('myTarget') || "";
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        document.querySelector(`.tab-btn[onclick="switchTab('${tabId}')"]`).classList.add('active');
+
+        if(tabId === 'tab-calculator' && currentOns > 0 && currentUsd > 0) {
+            const calcOnsInput = document.getElementById('calcOns');
+            const calcUsdInput = document.getElementById('calcUsd');
+            if(calcOnsInput.value === "") calcOnsInput.value = currentOns.toFixed(2);
+            if(calcUsdInput.value === "") calcUsdInput.value = currentUsd.toFixed(4);
+            calculateHypothetical(); 
+        }
+        if(tabId === 'tab-inflation') calculateRealReturn();
+        if(tabId === 'tab-debt') calculateDebt();
+    }
+
+    async function fetchMarketData() {
+        try {
+            const [usdRes, goldRes, eurRes] = await Promise.all([
+                fetch(`https://api.twelvedata.com/price?symbol=USD/TRY&apikey=${TWELVE_DATA_KEY}`),
+                fetch(`https://api.twelvedata.com/price?symbol=XAU/USD&apikey=${TWELVE_DATA_KEY}`),
+                fetch(`https://api.twelvedata.com/price?symbol=EUR/TRY&apikey=${TWELVE_DATA_KEY}`)
+            ]);
+
+            const usdData = await usdRes.json();
+            const goldData = await goldRes.json();
+            const eurData = await eurRes.json();
+
+            if(usdData && usdData.price) currentUsd = parseFloat(usdData.price) * MULTIPLIERS.USD;
+            if(goldData && goldData.price) currentOns = parseFloat(goldData.price);
+            if(eurData && eurData.price) currentEur = parseFloat(eurData.price);
+
+            document.getElementById('apiError').style.display = 'none';
+            calculate();
+            if(document.getElementById('tab-debt').classList.contains('active')) calculateDebt();
+        } catch (err) {
+            console.error("Market Verisi Hatası:", err);
+            if(currentOns === 0) document.getElementById('apiError').style.display = 'block';
+        }
+    }
+
+    function calculate() {
+        const userGram = document.getElementById('userGram').value || 0;
+        const targetAmount = document.getElementById('targetAmount').value || 0;
+
+        localStorage.setItem('myGrams', userGram);
+        localStorage.setItem('myTarget', targetAmount);
+
+        if (currentOns > 0 && currentUsd > 0) {
+            document.getElementById('ons-price').innerText = `$${currentOns.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            document.getElementById('usd-price').innerText = `${currentUsd.toFixed(2)} ₺`;
+
+            document.getElementById('last-update').innerText = "Son Güncelleme: " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+
+            const baseGram = (currentOns / 31.1) * currentUsd;
+            const buyPrice = baseGram * MULTIPLIERS.GOLD_BUY;
+            const sellPrice = baseGram * MULTIPLIERS.GOLD_SELL;
+
+            document.getElementById('buy-price').innerText = `${buyPrice.toLocaleString('tr-TR', {maximumFractionDigits: 2})} ₺`;
+            document.getElementById('sell-price').innerText = `${sellPrice.toLocaleString('tr-TR', {maximumFractionDigits: 2})} ₺`;
+
+            const total = buyPrice * userGram;
+            document.getElementById('total-value').innerText = total.toLocaleString('tr-TR', {maximumFractionDigits: 0}) + " ₺";
+
+            if (targetAmount > 0) {
+                const percent = Math.min((total / targetAmount) * 100, 100);
+                const remaining = Math.max(targetAmount - total, 0);
+
+                document.getElementById('progressBar').style.width = percent + "%";
+                document.getElementById('progressPercent').innerText = "%" + percent.toFixed(1);
+                document.getElementById('remainingAmount').innerText = "Kalan: " + remaining.toLocaleString('tr-TR', {maximumFractionDigits: 0}) + " ₺";
+            }
+
+            calculateHistoryStats();
+            if(document.getElementById('tab-inflation').classList.contains('active')) calculateRealReturn();
+            if(document.getElementById('tab-debt').classList.contains('active')) calculateDebt();
+        }
+    }
+
+    function calculateDebt() {
+        const debtAmt = parseFloat(document.getElementById('debtAmount').value) || 0;
+        const currency = document.getElementById('debtCurrency').value;
+        
+        let debtInTL = 0;
+        if(currency === 'USD') debtInTL = debtAmt * currentUsd;
+        else if(currency === 'EUR') debtInTL = debtAmt * currentEur;
+        else debtInTL = debtAmt; // TRY
+
+        document.getElementById('debtTLValue').innerText = debtInTL > 0 ? `${debtInTL.toLocaleString('tr-TR', {maximumFractionDigits: 0})} ₺` : "--- ₺";
+
+        if(currentOns > 0 && currentUsd > 0 && debtInTL > 0) {
+            const currentGramPrice = ((currentOns / 31.1) * currentUsd) * MULTIPLIERS.GOLD_BUY;
+            const goldNeeded = debtInTL / currentGramPrice;
+            document.getElementById('debtGoldNeeded').innerText = `${goldNeeded.toFixed(2)} gr`;
+        } else {
+            document.getElementById('debtGoldNeeded').innerText = "--- gr";
+        }
+    }
+
+    function calculateTimeMachineUI() {
+        if (purchaseHistory.length === 0) {
+            document.getElementById('tmTotalCost').innerText = "0 ₺";
+            document.getElementById('tmCurrentValue').innerText = "0 ₺";
+            return;
+        }
+        document.getElementById('tmTotalCost').innerText = `${globalTotalCost.toLocaleString('tr-TR', {maximumFractionDigits: 0})} ₺`;
+        
+        const currentGramPrice = ((currentOns / 31.1) * currentUsd) * MULTIPLIERS.GOLD_BUY;
+        const currentValue = globalTotalGrams * currentGramPrice;
+        document.getElementById('tmCurrentValue').innerText = `${currentValue.toLocaleString('tr-TR', {maximumFractionDigits: 0})} ₺`;
+    }
+
+    function addOtherAsset() {
+        const type = document.getElementById('otherAssetType').value;
+        const amount = parseFloat(document.getElementById('otherAssetAmount').value);
+        
+        if(isNaN(amount) || amount <= 0) {
+            alert("⚠️ Lütfen sepete eklemek için geçerli bir tutar giriniz."); 
+            return;
+        }
+        
+        otherAssetsList.push({ type, amount });
+        localStorage.setItem('myOtherAssetsList', JSON.stringify(otherAssetsList));
+        document.getElementById('otherAssetAmount').value = ""; 
+        renderOtherAssets();
+    }
+
+    function removeOtherAsset(index) {
+        otherAssetsList.splice(index, 1);
+        localStorage.setItem('myOtherAssetsList', JSON.stringify(otherAssetsList));
+        renderOtherAssets();
+    }
+
+    function renderOtherAssets() {
+        const container = document.getElementById('otherAssetsContainer');
+        container.innerHTML = "";
+        
+        if(otherAssetsList.length === 0) {
+            container.innerHTML = `<div style="text-align:center; font-size:0.75rem; color:var(--text-muted); padding:5px;">Sepetinizde henüz başka varlık yok.</div>`;
+            return;
+        }
+
+        otherAssetsList.forEach((item, index) => {
+            container.innerHTML += `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 8px 12px; border-radius: 8px; margin-bottom: 5px; font-size: 0.85rem; border: 1px solid var(--border);">
+                    <div><strong style="color:var(--gold);">${item.type}</strong>: ${item.amount.toLocaleString('tr-TR')} ₺</div>
+                    <button class="btn-small red" style="padding: 4px 8px; font-size: 0.7rem;" onclick="removeOtherAsset(${index})">Sil</button>
+                </div>`;
+        });
+    }
+
+    function savePurchase() {
+        const gram = parseFloat(document.getElementById('histGram').value);
+        const price = parseFloat(document.getElementById('histPrice').value);
+        const errDiv = document.getElementById('histError');
+
+        if (isNaN(gram) || isNaN(price) || gram <= 0 || price <= 0) {
+            errDiv.innerText = "⚠️ Geçerli gram ve fiyat giriniz.";
+            errDiv.style.display = "block"; return;
+        }
+        errDiv.style.display = "none";
+
+        if (editIndex > -1) { purchaseHistory[editIndex] = { gram, price }; cancelEdit(); } 
+        else { purchaseHistory.push({ gram, price }); document.getElementById('histGram').value = ""; document.getElementById('histPrice').value = ""; }
+        updateHistory();
+    }
+
+    function editPurchase(index) {
+        document.getElementById('histGram').value = purchaseHistory[index].gram;
+        document.getElementById('histPrice').value = purchaseHistory[index].price;
+        editIndex = index;
+        document.getElementById('savePurchaseBtn').innerText = "Güncelle";
+        document.getElementById('cancelEditBtn').style.display = "inline-block";
+        document.getElementById('aiTradingRow').style.display = "none";
+    }
+
+    function cancelEdit() {
+        editIndex = -1;
+        document.getElementById('histGram').value = "";
+        document.getElementById('histPrice').value = "";
+        document.getElementById('savePurchaseBtn').innerText = "➕ Portföye Ekle";
+        document.getElementById('cancelEditBtn').style.display = "none";
+        document.getElementById('aiTradingRow').style.display = "flex";
+        document.getElementById('histError').style.display = "none";
+    }
+
+    function deletePurchase(index) { purchaseHistory.splice(index, 1); if (editIndex === index) cancelEdit(); updateHistory(); }
+
+    function updateHistory() {
+        localStorage.setItem('myPurchaseHistory', JSON.stringify(purchaseHistory));
+        renderHistoryList();
+        calculateHistoryStats();
+    }
+
+    function renderHistoryList() {
+        const listDiv = document.getElementById('historyList');
+        listDiv.innerHTML = "";
+        document.getElementById('historyCount').innerText = `${purchaseHistory.length} Kayıt`;
+        purchaseHistory.forEach((item, index) => {
+            const total = item.gram * item.price;
+            listDiv.innerHTML += `<div class="card" style="padding: 12px; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div><div style="color: var(--gold); font-weight: bold; font-size: 1.1rem;">${item.gram} gr</div>
+                    <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 2px;">Maliyet: ${item.price.toLocaleString('tr-TR')} ₺/gr</div></div>
+                    <div style="text-align: right; font-size: 1rem; font-weight: bold;">${total.toLocaleString('tr-TR', {maximumFractionDigits: 0})} ₺</div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border); padding-top: 10px;">
+                    <button class="btn-small blue" onclick="editPurchase(${index})">Düzenle</button>
+                    <button class="btn-small red" onclick="deletePurchase(${index})">Sil</button>
+                </div></div>`;
+        });
+    }
+
+    function calculateHistoryStats() {
+        const sumGramsEl = document.getElementById('summaryGrams');
+        const sumCostEl = document.getElementById('summaryAvgCost');
+        const sumProfitEl = document.getElementById('summaryProfit');
+        const alertBox = document.getElementById('opportunityAlert');
+
+        if (purchaseHistory.length === 0) {
+            sumGramsEl.innerText = "0.00"; sumCostEl.innerText = "0 ₺"; sumProfitEl.innerText = "0 ₺ (%0)"; sumProfitEl.style.color = "var(--text)";
+            alertBox.style.display = 'none'; globalTotalGrams = 0; globalTotalCost = 0; avgPortfolioCost = 0; 
+            calculateTimeMachineUI();
+            return;
+        }
+
+        globalTotalGrams = 0; globalTotalCost = 0;
+        purchaseHistory.forEach(item => { globalTotalGrams += item.gram; globalTotalCost += (item.gram * item.price); });
+        avgPortfolioCost = globalTotalCost / globalTotalGrams;
+        
+        sumGramsEl.innerText = globalTotalGrams.toFixed(2);
+        sumCostEl.innerText = `${avgPortfolioCost.toLocaleString('tr-TR', {maximumFractionDigits: 2})} ₺`;
+
+        if (currentOns > 0 && currentUsd > 0) {
+            const baseGram = (currentOns / 31.1) * currentUsd;
+            const currentGramPrice = baseGram * MULTIPLIERS.GOLD_BUY; 
+            const currentValue = globalTotalGrams * currentGramPrice;
+            const profitTL = currentValue - globalTotalCost;
+            const profitPercent = (profitTL / globalTotalCost) * 100;
+            
+            const sign = profitTL >= 0 ? "+" : "";
+            sumProfitEl.innerText = `${sign}${profitTL.toLocaleString('tr-TR', {maximumFractionDigits: 0})} ₺ (${sign}%${profitPercent.toFixed(2)})`;
+            sumProfitEl.style.color = profitTL >= 0 ? "var(--green)" : "var(--red)";
+
+            if (currentGramPrice < avgPortfolioCost) {
+                alertBox.style.display = 'block';
+                alertBox.innerHTML = `⚠️ <strong>Fırsat Penceresi Açıldı:</strong> Güncel fiyat (${currentGramPrice.toFixed(0)} ₺) ortalama maliyetinizin (${avgPortfolioCost.toFixed(0)} ₺) altında. Soloway der ki: <em>"Kan varken, düşüşleri kademeli (DCA) topla!"</em>`;
+            } else { alertBox.style.display = 'none'; }
+        } else {
+            sumProfitEl.innerText = "Bekleniyor..."; sumProfitEl.style.color = "var(--text)"; alertBox.style.display = 'none';
+        }
+
+        calculateTimeMachineUI();
+    }
+
+    function calculateRealReturn() {
+        if(globalTotalCost === 0 || currentOns === 0) return;
+        const infRate = parseFloat(document.getElementById('inflationRate').value) || 0;
+        const currentGramPrice = ((currentOns / 31.1) * currentUsd) * MULTIPLIERS.GOLD_BUY;
+        const currentValue = globalTotalGrams * currentGramPrice;
+        
+        const nominalProfit = currentValue - globalTotalCost;
+        const inflationAdjustedCost = globalTotalCost * (1 + (infRate / 100));
+        const realProfit = currentValue - inflationAdjustedCost;
+
+        document.getElementById('infNominal').innerText = `${nominalProfit > 0 ? '+' : ''}${nominalProfit.toLocaleString('tr-TR', {maximumFractionDigits: 0})} ₺`;
+        document.getElementById('infNominal').style.color = nominalProfit >= 0 ? 'var(--green)' : 'var(--red)';
+
+        document.getElementById('infReal').innerText = `${realProfit > 0 ? '+' : ''}${realProfit.toLocaleString('tr-TR', {maximumFractionDigits: 0})} ₺`;
+        document.getElementById('infReal').style.color = realProfit >= 0 ? 'var(--green)' : 'var(--red)';
+    }
+
+    function calculateHypothetical() {
+        const hOns = parseFloat(document.getElementById('calcOns').value) || 0;
+        const hUsd = parseFloat(document.getElementById('calcUsd').value) || 0;
+        if (hOns > 0 && hUsd > 0) {
+            const baseGram = (hOns / 31.1) * hUsd;
+            document.getElementById('calc-buy-price').innerText = `${(baseGram * 1.010).toLocaleString('tr-TR', {maximumFractionDigits: 2})} ₺`;
+            document.getElementById('calc-sell-price').innerText = `${(baseGram * 1.010).toLocaleString('tr-TR', {maximumFractionDigits: 2})} ₺`;
+        } else {
+            document.getElementById('calc-buy-price').innerText = "--- ₺"; document.getElementById('calc-sell-price').innerText = "--- ₺";
+        }
+    }
+
+    // ==========================================
+    // GEMINI AI ENTEGRASYONU FONKSİYONLARI
+    // ==========================================
+    async function generateGeminiContent(prompt, boxId, btnId, originalBtnText, useSearch = false) {
+        const btn = document.getElementById(btnId);
+        const resultDiv = document.getElementById(boxId);
+        
+        btn.innerText = "✨ Ustalar Düşünüyor..."; btn.disabled = true;
+        resultDiv.style.display = "block";
+        resultDiv.innerHTML = "<span class='status-dot ai-dot'></span> " + (useSearch ? "Veriler taranıyor..." : "Analiz ediliyor...");
+
+        try {
+            // DOĞRU MODEL: gemini-1.5-flash
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: AI_SYSTEM_PROMPT }] } };
+            
+            if (useSearch) { payload.tools = [{ googleSearch: {} }]; }
+            
+            let response, data, error;
+            let delay = 1000;
+            for (let i = 0; i < 5; i++) {
+                try {
+                    response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    data = await response.json();
+                    if(data.error) throw new Error(data.error.message);
+                    break;
+                } catch (err) {
+                    error = err;
+                    if (i === 4) throw err;
+                    await new Promise(r => setTimeout(r, delay)); delay *= 2;
+                }
+            }
+            resultDiv.innerHTML = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        } catch (err) {
+            resultDiv.innerHTML = "⚠️ Yapay zeka ile bağlantı kurulamadı. Hata: " + (err.message || "Bilinmiyor");
+        } finally {
+            btn.innerText = originalBtnText; btn.disabled = false;
+        }
+    }
+
+    function analyzeDebtHedge() {
+        const debtAmt = document.getElementById('debtAmount').value;
+        const currency = document.getElementById('debtCurrency').value;
+        const goldNeeded = document.getElementById('debtGoldNeeded').innerText;
+        const currentGramPrice = ((currentOns / 31.1) * currentUsd) * MULTIPLIERS.GOLD_BUY;
+        
+        if(!debtAmt || debtAmt <= 0) { alert("Lütfen borç tutarını girin."); return; }
+        
+        const prompt = `Aralık ayına kadar kapatılması hedeflenen ${debtAmt} ${currency} tutarında bir borç var. Bu borcu şu an kapatmak için portföyden ${goldNeeded} satılması gerekiyor. Güncel altın gram fiyatı ${currentGramPrice.toFixed(0)} TL. Soloway olarak, grafikteki anlık duruma göre borcu kapatmak için altını bozmanın teknik olarak doğru zaman olup olmadığını söyle. Stöferle olarak ise panikle altın bozarak kağıt para borcu kapatmanın riskini (veya enflasyonist sistemde borcun nasılsa eriyeceğini) anlatarak karşıt bir fikir sun.`;
+        
+        generateGeminiContent(prompt, 'aiDebtResult', 'aiDebtBtn', '⚖️ Borcumu Kapatayım mı? (Analiz Al)');
+    }
+
+    function analyzeTimeMachine() {
+        if(globalTotalCost === 0) { alert("Lütfen geçmiş altın alımlarınızı portföye ekleyin."); return; }
+        
+        const currentGramPrice = ((currentOns / 31.1) * currentUsd) * MULTIPLIERS.GOLD_BUY;
+        const currentValue = globalTotalGrams * currentGramPrice;
+        const profitTL = currentValue - globalTotalCost;
+        
+        const prompt = `Geçmişte toplam ${globalTotalCost.toFixed(0)} TL maliyetle altın biriktirildi. Yıl sonunda hedefler var. Eğer bu para zamanında altına çevrilmeyip yastık altında TL olarak tutulsaydı hiç artmayacaktı, fakat altının değerlenmesiyle portföy şu an ${currentValue.toFixed(0)} TL oldu (${profitTL.toFixed(0)} TL fark yarattı). Stöferle olarak, parayı fiat sistemde tutmamanın hedeflere ve alım gücünün korunmasına nasıl devasa bir katkı sağladığını acımasızca TL'yi gömerek anlat. Soloway olarak ise bu disiplinli tutumu tebrik et.`;
+        
+        generateGeminiContent(prompt, 'aiTimeMachineResult', 'aiTimeMachineBtn', '⏳ Stöferle: TL\'nin Erimiş Yüzünü Göster');
+    }
+
+    function analyzeFiatWaste() {
+        const wastedAmt = parseFloat(document.getElementById('wastedFiat').value) || 0;
+        if(!wastedAmt || wastedAmt <= 0) { alert("Lütfen harcama tutarı girin."); return; }
+        
+        const currentGramPrice = ((currentOns / 31.1) * currentUsd) * MULTIPLIERS.GOLD_BUY;
+        const missedGrams = wastedAmt / currentGramPrice;
+        
+        const prompt = `Bu ay dışarıdaki kahvelere, aboneliklere veya lüks tüketime ${wastedAmt.toFixed(0)} TL israf edildi. Bu tutar güncel kurdan ${missedGrams.toFixed(2)} gram altın ediyor. Soloway olarak bu israfı eleştir, bu gramların bir sonraki boğa döngüsünde kartopu etkisiyle ne kadar büyüyeceğini hatırlat. Stöferle olarak ise fiat sistemine gönüllü vergi ödemeyi ve sistemi beslemeyi bırakmayı emret.`;
+        
+        generateGeminiContent(prompt, 'aiFiatWasteResult', 'aiFiatWasteBtn', '🕵️‍♂️ Harcamamı Yüzüme Vur');
+    }
+
+    function generateDailyReport() {
+        const totalValue = document.getElementById('total-value').innerText;
+        const prompt = `Bugünün makroekonomik haberlerini (FED, tahvil, savaş vb.) internetten bul. Anlık altın fiyatlarını göz önüne alarak bana "In Gold We Trust" formatında, Stöferle ve Soloway diliyle profesyonel bir sabah bülteni yaz. Bülten 3 paragraf olsun: 1) Küresel Makro Görünüm, 2) XAU/USD Teknik Beklentisi, 3) ${totalValue} değerindeki altın portföyüm için aksiyon planı. Uzun ve doyurucu bir metin yaz.`;
+        generateGeminiContent(prompt, 'aiDailyResult', 'aiDailyBtn', '📜 "In Gold We Trust" Günlük Bültenimi Çıkar', true);
+    }
+
+    function roastPortfolio() {
+        if(globalTotalCost === 0) { alert("Eleştirilecek bir portföyünüz yok!"); return; }
+        const currentGramPrice = ((currentOns / 31.1) * currentUsd) * MULTIPLIERS.GOLD_BUY;
+        const profitTL = (globalTotalGrams * currentGramPrice) - globalTotalCost;
+        const prompt = `Kullanıcının ${globalTotalGrams.toFixed(2)} gram altını var. Ort. maliyet: ${avgPortfolioCost.toFixed(2)} TL/gr. Anlık fiyat: ${currentGramPrice.toFixed(2)} TL/gr. Kar/Zarar: ${profitTL.toFixed(0)} TL. 
+        Kullanıcının portföyünü "ROAST" yap. Yani Stöferle ve Soloway olarak aşırı iğneleyici, sarkastik ve acımasızca eleştir. Maliyeti yüksekse "Tepeden mi aldın fomo'cu?" diye dalga geç, karı azsa "Bununla anca kahve alırsın" de. Eğlenceli ama acımasız ol!`;
+        generateGeminiContent(prompt, 'aiAnalysisResult', 'aiRoastBtn', '🔥 Acımasız Eleştiri Modu');
+    }
+
+    function generateDCAPlan() {
+        if(currentOns === 0) return;
+        const currentGramPrice = ((currentOns / 31.1) * currentUsd) * MULTIPLIERS.GOLD_BUY;
+        const prompt = `Şu an altının gram fiyatı ${currentGramPrice.toFixed(2)} TL. Kullanıcı elinde nakit tutuyor ve "DCA (Kademeli Alım)" yapmak istiyor. Gareth Soloway olarak, önümüzdeki haftalar için olası teknik destek seviyelerini tahmin ederek kullanıcıya adım adım bir alım senaryosu haritası çıkar. "Fiyat şuraya düşerse kasanın %20'siyle gir, şuraya düşerse %30'uyla ekleme yap" gibi rasyonel ve korkusuz bir strateji tablosu yaz.`;
+        generateGeminiContent(prompt, 'aiDCAPlanResult', 'aiDCAPlanBtn', '🗺️ Kademeli Alım Yol Haritası (Strateji Çıkarımı)');
+    }
+
+    function analyzeGoal() {
+        const targetAmount = parseFloat(document.getElementById('targetAmount').value);
+        const totalValue = parseFloat(document.getElementById('total-value').innerText.replace(/[^0-9,-]+/g,"").replace(',', '.'));
+        if(!targetAmount || targetAmount <= 0) { alert("Lütfen önce bir Hedef (₺) belirleyin."); return; }
+        const prompt = `Kullanıcının ${targetAmount.toFixed(0)} TL hedefi var. Mevcut altını ${totalValue.toFixed(0)} TL. Açık: ${(targetAmount-totalValue).toFixed(0)} TL. Stöferle'nin fiat sistemine güvensizliğini ve Soloway'in DCA stratejisini kullanarak hedefine ulaşması için çok sert ve motive edici bir koçluk yap.`;
+        generateGeminiContent(prompt, 'aiGoalResult', 'aiGoalBtn', '✨ Usta Analistlerden Hedef Yorumu Al');
+    }
+
+    function analyzePortfolio() {
+        if (purchaseHistory.length === 0) { alert("Önce portföyünüze alım eklemelisiniz."); return; }
+        const currentGramPrice = ((currentOns / 31.1) * currentUsd) * MULTIPLIERS.GOLD_BUY;
+        const profitTL = (globalTotalGrams * currentGramPrice) - globalTotalCost;
+        const prompt = `Kullanıcının kademeli aldığı (DCA) ${globalTotalGrams.toFixed(2)} gram altını var. Ort. maliyet: ${avgPortfolioCost.toFixed(2)} TL/gr. Güncel piyasa: ${currentGramPrice.toFixed(2)} TL/gr. Kar/Zarar: ${profitTL.toFixed(0)} TL. Soloway ve Stöferle olarak ortalama maliyeti eleştir veya takdir et. Kağıt para risklerini hatırlatarak teknik bir projeksiyon sun.`;
+        generateGeminiContent(prompt, 'aiAnalysisResult', 'aiAnalyzeBtn', '✨ Portföy Röntgeni');
+    }
+
+    function analyzeScenario() {
+        const hOns = document.getElementById('calcOns').value, hUsd = document.getElementById('calcUsd').value;
+        if (!hOns || !hUsd) { alert("Ons ve Dolar tahmini girin."); return; }
+        const prompt = `Kullanıcı gelecekte Ons'un $${hOns} ve Doların ${hUsd} TL olacağını tahmin etti. (Şu an: $${currentOns}, ${currentUsd.toFixed(2)} TL). Soloway ve Stöferle olarak bu tahmini değerlendir. Bu seviyelerin gelmesi için dünyada ne kriz çıkmalı? Aykırı bir bakış açısıyla yorumla.`;
+        generateGeminiContent(prompt, 'aiScenarioResult', 'aiScenarioBtn', '✨ Makroekonomik Senaryoyu Yorumla');
+    }
+
+    function analyzeSentiment() {
+        if(currentOns <= 0) return;
+        const prompt = `Şu an piyasada altının onsu $${currentOns}. Dünya genelindeki piyasa duyarlılığını tahmin et ve Soloway'in 'kalabalığa zıt gitme' (contrarian) felsefesiyle yatırımcı psikolojisini yönetecek bir yorum yap. Coşku mu var, korku mu?`;
+        generateGeminiContent(prompt, 'aiQuickResult', 'aiSentimentBtn', '✨ Piyasa Durum Analizi');
+    }
+
+    function analyzeNews() {
+        const prompt = `Bugün altın fiyatlarını veya makroekonomiyi etkileyen son dakika haberleri internetten bul. Bu haberleri Stöferle'nin (fiat çöküşü) ve Soloway'in (teknik fiyat hareketleri) bakış açısıyla harmanlayarak kısaca yorumla.`;
+        generateGeminiContent(prompt, 'aiQuickResult', 'aiNewsBtn', '📰 Canlı Gündem', true);
+    }
+
+    function analyzeHodl() {
+        const prompt = `Kullanıcı, altın fiyatları istediği gibi gitmediği için yatırımlarını bozmayı düşünüyor. Stöferle olarak fiat sisteminin erimesini hatırlat. Soloway olarak ise piyasa döngülerindeki sıkıcı akümülasyon evresinden bahset ve zayıf ellerin (weak hands) dökülmesine izin vermemesini söyle.`;
+        generateGeminiContent(prompt, 'aiQuickResult', 'aiHodlBtn', '🧘‍♂️ Psikolojik Destek (HODL Koçu)');
+    }
+
+    function analyzeDiversification() {
+        const totalValue = parseFloat(document.getElementById('total-value').innerText.replace(/[^0-9,-]+/g,"").replace(',', '.'));
+        if (!totalValue || totalValue <= 0) { alert("⚠️ Lütfen önce altın miktarınızı Hızlı Durum sekmesinden giriniz."); return; }
+        if (otherAssetsList.length === 0) { alert("⚠️ Lütfen analiz için sepetinize ek varlıklar ekleyin."); return; }
+
+        let totalOtherAssets = 0;
+        let basketDetails = [];
+        otherAssetsList.forEach(item => {
+            totalOtherAssets += item.amount;
+            basketDetails.push(`${item.amount.toLocaleString('tr-TR')} TL değerinde ${item.type}`);
+        });
+        const basketString = basketDetails.join(", ");
+
+        const totalPortfolio = totalValue + totalOtherAssets;
+        const goldRatio = (totalValue / totalPortfolio) * 100;
+        const otherRatio = (totalOtherAssets / totalPortfolio) * 100;
+        
+        const prompt = `Kullanıcının ${totalValue.toFixed(0)} TL altını (%${goldRatio.toFixed(1)}) ve diğer varlıklarından oluşan bir sepeti var (%${otherRatio.toFixed(1)}). Sepetin tam içeriği şunlar: ${basketString}. Toplam portföy büyüklüğü: ${totalPortfolio.toFixed(0)} TL. 
+        Stöferle olarak altın miktarını öv ve sepetin geri kalanındaki varlık türlerine (Nakit/USD/EUR/CHF ise fiat sistemini göm, BIST/SPX ise hisse senedi piyasası risklerini hatırlat, BTC/Etherium ise kripto volatilitesini yorumla) nokta atışı eleştiriler yap. 
+        Soloway olarak ise tüm bu sepet yapma ve risk dağıtma stratejisini teknik bir bakış açısıyla yorumla. Dağılım mantıklı ve dengeli mi?`;
+        
+        generateGeminiContent(prompt, 'aiDiversifyResult', 'aiDiversifyBtn', '✨ Sepet Dağılımımı Yorumla');
+    }
+
+    function askBuyAdvice() {
+        const currentGramPrice = ((currentOns / 31.1) * currentUsd) * MULTIPLIERS.GOLD_BUY;
+        if(currentGramPrice <= 0) return;
+        const prompt = `Kullanıcı şu an yeni altın alımı yapmak istiyor. Anlık gram: ${currentGramPrice.toFixed(2)} TL, ort maliyet: ${avgPortfolioCost.toFixed(2)} TL. Soloway'in 'kan varken al' stratejisine göre FOMO'ya kapılmadan alım yapmak mantıklı mı?`;
+        generateGeminiContent(prompt, 'aiBuyAdviceResult', 'aiBuyAdviceBtn', '✨ Şu An Alınır Mı?');
+    }
+
+    function askSellAdvice() {
+        if(globalTotalCost === 0) return;
+        const currentGramPrice = ((currentOns / 31.1) * currentUsd) * MULTIPLIERS.GOLD_BUY;
+        const profitTL = (globalTotalGrams * currentGramPrice) - globalTotalCost;
+        const prompt = `Kullanıcı altını satıp kâr almayı düşünüyor. Anlık: ${currentGramPrice.toFixed(2)} TL, maliyet: ${avgPortfolioCost.toFixed(2)} TL. Kar/zarar: ${profitTL.toFixed(0)} TL. Soloway olarak grafiklerde kâr alma (trimming) tavsiyesi ver. Stöferle olarak araya girip, karşılıksız basılan fiat paraya geçmenin delilik olduğunu söyleyerek tartış.`;
+        generateGeminiContent(prompt, 'aiBuyAdviceResult', 'aiSellAdviceBtn', '✨ Satış Mahkemesi');
+    }
+
+    function analyzeCrisis() {
+        const scenario = document.getElementById('crisisScenario').value;
+        const totalValue = parseFloat(document.getElementById('total-value').innerText.replace(/[^0-9,-]+/g,"").replace(',', '.'));
+        const prompt = `Senaryo: "${scenario}". Kullanıcının ${totalValue ? totalValue.toFixed(0) + " TL'lik" : "bir miktar"} altın portföyü var. Stöferle'nin fiat çöküşü tezi ve Soloway'in kriz döngüleri teziyle bu olayın altın portföyünü nasıl etkileyeceğini simüle et. Portföy güvende mi?`;
+        generateGeminiContent(prompt, 'aiCrisisResult', 'aiCrisisBtn', '✨ Stres Testini Başlat');
+    }
+
+    function analyzeInflation() {
+        if(globalTotalCost === 0) return;
+        const infRate = parseFloat(document.getElementById('inflationRate').value) || 0;
+        const nominalProfitText = document.getElementById('infNominal').innerText;
+        const realProfitText = document.getElementById('infReal').innerText;
+        const prompt = `Kullanıcının TL bazında nominal kârı ${nominalProfitText}, ancak %${infRate} gerçek enflasyon karşısında reel alım gücü değişimi ${realProfitText}. Stöferle olarak fiat paranın (TL/Dolar) gizli enflasyon vergisini çok sert ve net bir dille eleştir.`;
+        generateGeminiContent(prompt, 'aiInflationResult', 'aiInflationBtn', '✨ Stöferle: Gerçekleri Söyle');
+    }
+
+    async function init() {
+        updateHistory(); 
+        renderOtherAssets(); 
+        await fetchMarketData();
+        setInterval(fetchMarketData, 120000); 
+    }
+
+    init();
+
+</script>
+
+</body>
+</html>
