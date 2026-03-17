@@ -704,8 +704,8 @@
         resultDiv.innerHTML = "<span class='status-dot ai-dot'></span> " + (useSearch ? "Veriler taranıyor..." : "Analiz ediliyor...");
 
         try {
-            // DOĞRU MODEL: gemini-1.5-flash
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            // DOĞRU MODEL: gemini-2.5-flash
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
             const payload = { contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: AI_SYSTEM_PROMPT }] } };
             
             if (useSearch) { payload.tools = [{ googleSearch: {} }]; }
